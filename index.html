@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Web Proxy</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding-top: 50px;
+        }
+        input, button {
+            padding: 10px;
+            font-size: 16px;
+            margin: 5px;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 20px;
+            background: #fff;
+            border: 1px solid #ddd;
+            max-width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: left;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🚀 Simple Web Proxy</h1>
+    <input type="text" id="urlInput" placeholder="Enter URL or type 'block blast'" size="50">
+    <button onclick="fetchProxy()">Go</button>
+
+    <div id="result"></div>
+
+    <script>
+        async function fetchProxy() {
+            let url = document.getElementById('urlInput').value.trim();
+
+            // Check for "block blast" and load the game automatically
+            if (url.toLowerCase() === "block blast") {
+                url = "https://block-blast.io/";
+            }
+
+            if (!url.startsWith('http')) {
+                alert('⚠️ Please enter a valid URL or try "block blast"');
+                return;
+            }
+
+            try {
+                // Fetch the proxied content
+                const response = await fetch(`/proxy?url=${encodeURIComponent(url)}`);
+                if (!response.ok) {
+                    throw new Error('Error fetching the URL');
+                }
+
+                // Get content and replace asset URLs to go through the proxy
+                let data = await response.text();
+                data = data.replace(/(src|href)=["'](\/.*?)(["'])/g, (match, p1, p2, p3) => {
+                    const assetUrl = url + p2;
+                    return `${p1}="/proxy/assets?url=${encodeURIComponent(assetUrl)}"${p3}`;
+                });
+
+                document.getElementById('result').innerHTML = data;
+            } catch (error) {
+                document.getElementById('result').innerHTML = `<p style="color:red;">❌ Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+
+</body>
+</html>
